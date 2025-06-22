@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Price Forecast</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0f0f23;
+            color: #fff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid #333;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #00d4ff;
+            text-decoration: none;
+        }
+
+        .nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+        }
+
+        .page {
+            display: none;
+            min-height: calc(100vh - 80px);
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Landing Page Styles */
+        .landing-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 80px);
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .landing-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .landing-content {
+            text-align: center;
+            z-index: 1;
+            position: relative;
+            max-width: 800px;
+        }
+
+        .landing-title {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .landing-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 4rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Forecast Page Styles */
+        .forecast-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid #333;
+            height: fit-content;
+            position: sticky;
+            top: 2rem;
+        }
+
+        .sidebar h2 {
+            color: #00d4ff;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #ccc;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .model-info {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .model-info h3 {
+            color: #00d4ff;
+            margin-bottom: 1rem;
+        }
+
+        .main-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 15px;
+            border: 1px solid #333;
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 2rem;
+            border-bottom: 1px solid #333;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .content-title {
+            font-size: 2rem;
+            color: #00d4ff;
+            margin-bottom: 0.5rem;
+        }
+
+        .stock-price {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #4ade80;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-change {
+            font-size: 1.2rem;
+            color: #4ade80;
+        }
+
+        .price-change.negative {
+            color: #ef4444;
+        }
+
+        .chart-container {
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #fff;
+        }
+
+        .download-btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a6f);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 0 2rem 2rem 2rem;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid #333;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00d4ff;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        /* Stock ticker animation */
+        .ticker {
+            background: #000;
+            color: #00ff00;
+            padding: 0.5rem;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .ticker-content {
+            display: inline-block;
+            animation: scroll-left 30s linear infinite;
+        }
+
+        @keyframes scroll-left {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .forecast-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .landing-title {
+                font-size: 2.5rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="logo">📈 StockForecast Pro</a>
+            <nav class="nav">
+                <button class="nav-btn active" onclick="showPage('landing')">Home</button>
+                <button class="nav-btn" onclick="showPage('forecast')">Forecast</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Landing Page -->
+    <div id="landing" class="page active">
+        <div class="landing-container">
+            <div class="landing-content fade-in">
+                <h1 class="landing-title">Stock Price Forecast</h1>
+                <p class="landing-subtitle">Advanced AI-powered stock prediction using multiple machine learning models</p>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3>ARIMA Model</h3>
+                        <p>Classical statistical approach for time series forecasting with trend analysis</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🔮</div>
+                        <h3>Prophet Model</h3>
+                        <p>Facebook's advanced forecasting tool for seasonal and holiday effects</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>EMA Analysis</h3>
+                        <p>Exponential Moving Average for trend-following predictions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forecast Page -->
+    <div id="forecast" class="page">
+        <div class="ticker">
+            <div class="ticker-content">
+                AAPL: $189.45 (+2.34%) • GOOGL: $2,845.67 (+1.23%) • MSFT: $378.90 (-0.45%) • TSLA: $245.78 (+3.21%) • AMZN: $3,456.12 (+0.87%) • META: $312.45 (+2.10%)
+            </div>
+        </div>
+        
+        <div class="forecast-container">
+            <div class="sidebar">
+                <h2>🎯 Forecast Settings</h2>
+                <form id="forecastForm">
+                    <div class="form-group">
+                        <label for="model">Select Model:</label>
+                        <select id="model" name="model" class="form-control">
+                            <option value="arima">ARIMA (Auto-Regressive)</option>
+                            <option value="prophet">Prophet (Facebook AI)</option>
+                            <option value="ema">EMA (Moving Average)</option>
+                            <option value="lstm">LSTM (Deep Learning)</option>
+                            <option value="linear">Linear Regression</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="months">Forecast Period (months):</label>
+                        <input type="range" id="months" name="months" min="1" max="24" value="6" class="form-control" oninput="updateMonthsValue(this.value)">
+                        <div style="text-align: center; margin-top: 0.5rem; color: #00d4ff;">
+                            <span id="monthsValue">6</span> months
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confidence">Confidence Level:</label>
+                        <select id="confidence" name="confidence" class="form-control">
+                            <option value="80">80%</option>
+                            <option value="90" selected>90%</option>
+                            <option value="95">95%</option>
+                        </select>
+                    </div>
+                    
+                    <button type="button" class="btn-primary" onclick="runForecast()">
+                        🚀 Generate Forecast
+                    </button>
+                </form>
+                
+                <div class="model-info" id="modelInfo">
+                    <h3>About ARIMA</h3>
+                    <p>ARIMA (AutoRegressive Integrated Moving Average) is a classical statistical model for time series forecasting. It's particularly effective for data with trends and requires the series to be stationary.</p>
+                    <div style="margin-top: 1rem;">
+                        <strong>Best for:</strong> Short to medium-term forecasts with clear trends
+                    </div>
+                </div>
+            </div>
+            
+            <div class="main-content">
+                <div class="content-header">
+                    <h1 class="content-title">📈 Stock Analysis Dashboard</h1>
+                    <div class="stock-price" id="currentPrice">$6,600.00</div>
+                    <div class="price-change" id="priceChange">+463.00 (+7.55%) Today</div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-placeholder" id="chartContainer">
+                        <div class="chart-content">
+                            <div class="chart-title">Stock Price Forecast</div>
+                            <canvas id="stockChart" width="800" height="300"></canvas>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="download-btn" onclick="downloadForecast()">
+                        📥 Download Forecast Data
+                    </a>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">$6,600</div>
+                        <div class="stat-label">Current Price</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">$7,245</div>
+                        <div class="stat-label">6M Forecast</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">92.4%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">+9.8%</div>
+                        <div class="stat-label">Expected Return</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample stock data
+        const stockData = {
+            dates: ['Jul 2023', 'Aug 2023', 'Sep 2023', 'Oct 2023', 'Nov 2023', 'Dec 2023',
+                   'Jan 2024', 'Feb 2024', 'Mar 2024', 'Apr 2024', 'May 2024', 'Jun 2024',
+                   'Jul 2024', 'Aug 2024', 'Sep 2024', 'Oct 2024', 'Nov 2024', 'Dec 2024',
+                   'Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025', 'Jun 2025'],
+            prices: [1960, 1995, 2190, 1825, 2050, 1910, 2267, 2520, 2567, 2479, 2550, 2761,
+                    3005, 3086, 3520, 3755, 4340, 4224, 4062, 4804, 4364, 4467, 5784, 6137]
+        };
+
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Initialize chart if forecast page is shown
+            if (pageId === 'forecast') {
+                setTimeout(drawChart, 100);
+            }
+        }
+
+        function updateMonthsValue(value) {
+            document.getElementById('monthsValue').textContent = value;
+        }
+
+        function updateModelInfo() {
+            const model = document.getElementById('model').value;
+            const modelInfo = document.getElementById('modelInfo');
+            
+            const modelDescriptions = {
+                arima: {
+                    title: 'About ARIMA',
+                    description: 'ARIMA (AutoRegressive Integrated Moving Average) is a classical statistical model for time series forecasting. It\'s particularly effective for data with trends and requires the series to be stationary.',
+                    bestFor: 'Short to medium-term forecasts with clear trends'
+                },
+                prophet: {
+                    title: 'About Prophet',
+                    description: 'Prophet is Facebook\'s advanced forecasting tool designed to handle seasonal patterns, holidays, and missing data. It\'s robust and works well with daily data.',
+                    bestFor: 'Long-term forecasts with seasonal patterns'
+                },
+                ema: {
+                    title: 'About EMA',
+                    description: 'Exponential Moving Average gives more weight to recent observations. This simple approach is effective for short-term trend following.',
+                    bestFor: 'Short-term trend following and momentum trading'
+                },
+                lstm: {
+                    title: 'About LSTM',
+                    description: 'Long Short-Term Memory networks are a type of recurrent neural network capable of learning long-term dependencies in sequential data.',
+                    bestFor: 'Complex patterns and long-term dependencies'
+                },
+                linear: {
+                    title: 'About Linear Regression',
+                    description: 'Linear regression finds the best linear relationship between time and stock price. Simple but effective for trending data.',
+                    bestFor: 'Simple trend analysis and baseline comparisons'
+                }
+            };
+            
+            const info = modelDescriptions[model];
+            modelInfo.innerHTML = `
+                <h3>${info.title}</h3>
+                <p>${info.description}</p>
+                <div style="margin-top: 1rem;">
+                    <strong>Best for:</strong> ${info.bestFor}
+                </div>
+            `;
+        }
+
+        function runForecast() {
+            const model = document.getElementById('model').value;
+            const months = document.getElementById('months').value;
+            
+            // Simulate forecast generation
+            const button = document.querySelector('.btn-primary');
+            button.innerHTML = '⏳ Generating...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                drawChart(model, parseInt(months));
+                button.innerHTML = '🚀 Generate Forecast';
+                button.disabled = false;
+                updateStats(model, months);
+            }, 2000);
+        }
+
+        function drawChart(model = 'arima', forecastMonths = 6) {
+            const canvas = document.getElementById('stockChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Set up chart dimensions
+            const padding = 60;
+            const chartWidth = canvas.width - 2 * padding;
+            const chartHeight = canvas.height - 2 * padding;
+            
+            // Find min and max values
+            const allPrices = [...stockData.prices];
+            const lastPrice = allPrices[allPrices.length - 1];
+            
+            // Generate forecast data
+            const forecastPrices = [];
+            for (let i = 0; i < forecastMonths; i++) {
+                const trend = model === 'arima' ? 50 + Math.random() * 100 - 50 :
+                             model === 'prophet' ? 75 + Math.random() * 50 :
+                             model === 'ema' ? 25 + Math.random() * 50 :
+                             model === 'lstm' ? 100 + Math.random() * 100 - 50 :
+                             60 + Math.random() * 40;
+                
+                const nextPrice = forecastPrices.length === 0 ? 
+                    lastPrice + trend : 
+                    forecastPrices[forecastPrices.length - 1] + trend;
+                forecastPrices.push(Math.max(nextPrice, 100));
+            }
+            
+            const allValues = [...allPrices, ...forecastPrices];
+            const minPrice = Math.min(...allValues) * 0.9;
+            const maxPrice = Math.max(...allValues) * 1.1;
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            for (let i = 0; i <= 10; i++) {
+                const y = padding + (i * chartHeight / 10);
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(padding + chartWidth, y);
+                ctx.stroke();
+            }
+            
+            // Draw historical data
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            
+            for (let i = 0; i < stockData.prices.length; i++) {
+                const x = padding + (i * chartWidth / (stockData.prices.length + forecastMonths - 1));
+                const y = padding + chartHeight - ((stockData.prices[i] - minPrice) / (maxPrice - minPrice)) * chartHeight;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+            
+            // Draw forecast data
+            ctx.strokeStyle = '#ff6b6b';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            
+            const startX = padding + ((stockData.prices.length - 1) * chartWidth / (stockData.prices.length + forecastMonths - 1));
+            const startY = padding + chartHeight - ((lastPrice - minPrice) / (maxPrice - minPrice)) * chartHeight;
+            ctx.moveTo(startX, startY);
+            
+            for (let i = 0; i < forecastPrices.length; i++) {
+                const x = padding + ((stockData.prices.length + i) * chartWidth / (stockData.prices.length + forecastMonths - 1));
+                const y = padding + chartHeight - ((forecastPrices[i] - minPrice) / (maxPrice - minPrice)) * chartHeight;
+                ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Add labels
+            ctx.fillStyle = '#fff';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            
+            // X-axis labels
+            const labelStep = Math.ceil((stockData.dates.length + forecastMonths) / 8);
+            for (let i = 0; i < stockData.dates.length; i += labelStep) {
+                const x = padding + (i * chartWidth / (stockData.prices.length + forecastMonths - 1));
+                ctx.fillText(stockData.dates[i], x, canvas.height - 20);
+            }
+            
+            // Legend
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillRect(padding, 20, 20, 3);
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'left';
+            ctx.fillText('Historical', padding + 30, 30);
+            
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillRect(padding + 120, 20, 20, 3);
+            ctx.fillText('Forecast', padding + 150, 30);
+        }
+
+        function updateStats(model, months) {
+            const stats = document.querySelectorAll('.stat-value');
+            const lastPrice = stockData.prices[stockData.prices.length - 1];
+            
+            // Simulate different model predictions
+            const multipliers = {
+                arima: 1.098,
+                prophet: 1.125,
+                ema: 1.045,
+                lstm: 1.156,
+                linear: 1.089
+            };
+            
+            const forecastPrice = Math.round(lastPrice * multipliers[model]);
+            const returnPercent = ((forecastPrice - lastPrice) / lastPrice * 100).toFixed(1);
+            
+            stats[1].textContent = `$${forecastPrice.toLocaleString()}`;
+            stats[3].textContent = `+${returnPercent}%`;
+            
+            // Update accuracy based on model
+            const accuracies = {
+                arima: 92.4,
+                prophet: 94.7,
+                ema: 87.3,
+                lstm: 96.2,
+                linear: 85.9
+            };
+            
+            stats[2].textContent = `${accuracies[model]}%`;
+        }
+
+        function downloadForecast() {
+            // Simulate CSV download
+            const csvContent = "Date,Price,Type\n" +
+                stockData.dates.map((date, i) => `${date},${stockData.prices[i]},Historical`).join('\n') +
+                '\n' +
+                "Jul 2025,6789,Forecast\n" +
+                "Aug 2025,6892,Forecast\n" +
+                "Sep 2025,7045,Forecast\n" +
+                "Oct 2025,7156,Forecast\n" +
+                "Nov 2025,7234,Forecast\n" +
+                "Dec 2025,7298,Forecast";
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'stock_forecast.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Event listeners
+        document.getElementById('model').addEventListener('change', updateModelInfo);
+        
+        // Initialize
+        updateModelInfo();
+        setTimeout(() => {
+            if (document.getElementById('forecast').classList.contains('active')) {
+                drawChart();
+            }
+        }, 100);
+    </script>
+</body>
+</html
