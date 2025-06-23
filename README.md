@@ -60,5 +60,11 @@ To deeply understand stock trends and build accurate forecasts, I’ve used the 
 - Best suited for highly non-linear and noisy stock data
 
 📦 Libraries: `tensorflow`, `keras`, `numpy`, `matplotlib`
+<img width="1470" alt="Image" src="https://github.com/user-attachments/assets/a1beeff9-3bf9-49a3-9fb4-5091b0f91103" />
 
+<img width="1466" alt="Image" src="https://github.com/user-attachments/assets/7a5d41dc-06ab-4e25-b263-97277bef3e91" />
+
+<img width="1470" alt="Image" src="https://github.com/user-attachments/assets/68e4d80d-cf1f-4f48-b65e-63f96697a5cb" />
+
+<img width="410" alt="Image" src="https://github.com/user-attachments/assets/96246528-0119-433e-984a-442d62c97fa4" />
 ---
